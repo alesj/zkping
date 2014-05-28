@@ -16,13 +16,6 @@
 
 package io.fabric8.jgroups.zookeeper;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -30,7 +23,15 @@ import org.jgroups.Address;
 import org.jgroups.Event;
 import org.jgroups.protocols.FILE_PING;
 import org.jgroups.protocols.PingData;
+import org.jgroups.util.Responses;
 import org.jgroups.util.Util;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
@@ -99,21 +100,24 @@ public abstract class AbstractZooKeeperPing extends FILE_PING {
      *
      * @return all data
      */
-    protected synchronized List<PingData> readAll(String clusterName) {
+    @Override
+    protected synchronized void readAll(List<Address> members, String clustername, Responses responses) {
         List<PingData> retval = new ArrayList<>();
         try {
             String clusterPath = discoveryPath;
             for (String node : curator.getChildren().forPath(clusterPath)) {
                 String nodePath = ZKPaths.makePath(clusterPath, node);
-                PingData nodeData = readPingData(nodePath);
-                if (nodeData != null)
-                    retval.add(nodeData);
+                PingData data = readPingData(nodePath);
+                if(data != null) {
+                    responses.addResponse(data,true);
+                    if(local_addr != null && !local_addr.equals(data.getAddress()))
+                        addDiscoveryResponseToCaches(data.getAddress(),data.getLogicalName(),data.getPhysicalAddr());
+                }
             }
 
         } catch (Exception e) {
-            log.debug(String.format("Failed to read ping data from ZooKeeper for cluster: %s", clusterName), e);
+            log.debug(String.format("Failed to read ping data from ZooKeeper for cluster: %s", clustername), e);
         }
-        return retval;
     }
 
     @Override

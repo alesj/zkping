@@ -15,7 +15,7 @@
     <description>ZooKeeper JGroups PING</description>
 
     <properties>
-        <version.jgroups>3.4.1.Final</version.jgroups>
+        <version.jgroups>3.5.0.Beta7</version.jgroups>
         <version.zookeeper>3.4.6</version.zookeeper>
         <version.curator>2.5.0</version.curator>
         <version.junit>4.11</version.junit>
