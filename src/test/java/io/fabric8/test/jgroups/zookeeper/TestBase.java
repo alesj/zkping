@@ -16,9 +16,6 @@
 
 package io.fabric8.test.jgroups.zookeeper;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import io.fabric8.test.jgroups.zookeeper.support.ZooKeeperUtils;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
@@ -34,6 +31,9 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
@@ -61,11 +61,11 @@ public abstract class TestBase {
 
             channels[i] = new JChannel(
                 new TCP(),
-                ping,
+                ping, // .setValue("async_discovery", true),
                 new NAKACK2(),
                 new UNICAST3(),
                 new STABLE(),
-                new GMS()
+                new GMS().joinTimeout(1000)
             );
             channels[i].setName(Character.toString((char) ('A' + i)));
             channels[i].connect("test");
