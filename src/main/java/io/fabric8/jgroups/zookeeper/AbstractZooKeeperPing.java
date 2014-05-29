@@ -16,6 +16,12 @@
 
 package io.fabric8.jgroups.zookeeper;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.util.List;
+
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.utils.ZKPaths;
 import org.apache.zookeeper.CreateMode;
@@ -25,13 +31,6 @@ import org.jgroups.protocols.FILE_PING;
 import org.jgroups.protocols.PingData;
 import org.jgroups.util.Responses;
 import org.jgroups.util.Util;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author <a href="mailto:ales.justin@jboss.org">Ales Justin</a>
@@ -97,21 +96,18 @@ public abstract class AbstractZooKeeperPing extends FILE_PING {
 
     /**
      * Reads all information from the given directory under clustername
-     *
-     * @return all data
      */
     @Override
     protected synchronized void readAll(List<Address> members, String clustername, Responses responses) {
-        List<PingData> retval = new ArrayList<>();
         try {
-            String clusterPath = discoveryPath;
-            for (String node : curator.getChildren().forPath(clusterPath)) {
-                String nodePath = ZKPaths.makePath(clusterPath, node);
+            for (String node : curator.getChildren().forPath(discoveryPath)) {
+                String nodePath = ZKPaths.makePath(discoveryPath, node);
                 PingData data = readPingData(nodePath);
-                if(data != null) {
-                    responses.addResponse(data,true);
-                    if(local_addr != null && !local_addr.equals(data.getAddress()))
-                        addDiscoveryResponseToCaches(data.getAddress(),data.getLogicalName(),data.getPhysicalAddr());
+                if (data != null) {
+                    responses.addResponse(data, true);
+                    if (local_addr != null && !local_addr.equals(data.getAddress())) {
+                        addDiscoveryResponseToCaches(data.getAddress(), data.getLogicalName(), data.getPhysicalAddr());
+                    }
                 }
             }
 
